@@ -19,7 +19,6 @@ async def main():
     asyncio.create_task(sheduleMessagesAsync())
     await bot.start(token)
     print("started")
-    await bot.sendUpdateToAll()
     await bot.runUntilDisconnect()
     
 def sendUpdate():
