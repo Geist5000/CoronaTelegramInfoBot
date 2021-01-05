@@ -103,6 +103,15 @@ class CoronaBot(object):
                     me += " - %s\n"%(m.capitalize())
             await event.respond(me,buttons=bs)
 
+    async def sendMessageToAll(self,message):
+        users = self.userStore.getAllActiveUsers()
+        for u in users:
+            peer = InputPeerUser(u[0],u[1])
+            try:
+                await self.bot.send_message(peer,message,parse_mode="html")
+            except UserIsBlockedError:
+                self.userStore.removeUserFromDB(u[0],u[1])
+
 
         
 
