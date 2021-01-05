@@ -1,10 +1,8 @@
-from DataSourcesImpl import CitySource
-
 class Region(object):
-    _types = ["Bundesland","Landkreis","Stadtkreis"]
+    types = ["Bundesland","Landkreis","Stadtkreis"]
 
     def __init__(self,t,name):
-        if t not in self._types:
+        if t not in self.types:
             raise Exception("not a valid type")
         self.type = t
         self.name = name
@@ -43,16 +41,6 @@ class DataSource(object):
     def getLicenceText(self):
         raise NotImplemented()
 
-
-class RegionSourceProvider(object):
-    def __init__(self) -> None:
-        self.sources = {}
-    def getSourceFromRegion(self,region:Region):
-        if region not in self.sources:
-
-            if(region.type =="Stadtkreis"):
-                self.sources[region] = CitySource(region)
-        return self.sources[region]
 
 
 class UpdateTextLine(object):

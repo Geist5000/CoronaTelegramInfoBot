@@ -1,15 +1,11 @@
-from asyncio.events import get_event_loop
-from telethon.client import buttons
-from telethon.events.newmessage import NewMessage
 from telethon.sync import TelegramClient
 from telethon.tl.custom import Button 
-from telethon.tl.types import InputPeerUser, KeyboardButton, ReplyKeyboardHide 
+from telethon.tl.types import InputPeerUser
 from telethon import TelegramClient, events
 from telethon.errors import UserIsBlockedError
 from UserStore import UserStore
 from DataSources import *
-from DataSourcesImpl import CitySource
-
+from DataSourcesImpl import RegionSourceProvider
 import asyncio
 
 class CoronaBot(object):
@@ -36,6 +32,7 @@ class CoronaBot(object):
     async def onStartMessage(self,event):
         sender = event.input_sender
         try:    
+            print(self.userStore.getUser(sender.user_id,sender.access_hash))
             self.userStore.addUserToDB(sender.user_id,sender.access_hash)
             print("added user")
             await event.respond("Für welches Gebiet willst du jeden Morgen um 09:00 Nachrichten erhalten?\n\nBitte gebe zunächst die Art der Region an!",buttons=getRegionTypeKeyboard())
@@ -107,7 +104,7 @@ class CoronaBot(object):
         return await self.bot.run_until_disconnected()
 
 def getRegionTypeKeyboard():
-    return [[Button.text("Bundesland"),Button.text("Landkreis"),Button.text("Stadtkreis")]]
+    return [list(map(lambda t: Button.text(t),Region.types))]
 
 
 def getDefaultKeyboard():

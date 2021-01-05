@@ -1,10 +1,10 @@
 import requests
-from datetime import datetime,timedelta
+from datetime import datetime
+from Regions import *
 from urllib.parse import quote
 from DataSources import DataSource,Region
 
-from telethon.client import updates
-      
+
 class CitySource(DataSource):
     def __init__(self,city:Region):
         if(city.type !="Stadtkreis"):
@@ -43,3 +43,17 @@ class CitySource(DataSource):
         return "<a href=\"{:s}\">Robert Koch-Institut (RKI), dl-de/by-2-0</a>".format(self.licence)
     def getSourceText(self):
         return "<a href=\"{:s}\">Datensatz</a>".format(self.source)
+
+
+class RegionSourceProvider(object):
+    def __init__(self) -> None:
+        self.sources = {}
+    def getSourceFromRegion(self,region:Region):
+        if region not in self.sources:
+
+            if(region.type =="Stadtkreis"):
+                self.sources[region] = CitySource(region)
+        return self.sources[region]
+
+    def getPossibleNameForRegionType(self,region):
+        if(region.type == "Stadtkreis"):        
