@@ -1,5 +1,5 @@
 class Region(object):
-    types = ["Bundesland","Landkreis","Stadtkreis"]
+    types = ["Bundesland","Landkreis"]
 
     def __init__(self,t,name):
         if t not in self.types:

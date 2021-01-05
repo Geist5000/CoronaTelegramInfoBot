@@ -7,6 +7,7 @@ from UserStore import UserStore
 from DataSources import *
 from DataSourcesImpl import RegionSourceProvider
 import asyncio
+import difflib
 
 class CoronaBot(object):
     def __init__(self,apiId,apiHash) -> None:
@@ -85,7 +86,24 @@ class CoronaBot(object):
 
 
     async def tryAddRegionName(self,event,databaseUser):
-        regionType = databaseUser[2]
+        name = event.message.message
+        region = Region(databaseUser[2],None)
+        possibleNames = [n.lower() for n in self.dataStoreProvider.getPossibleNameForRegionType(region)]
+        if(name.lower() in possibleNames):
+            await event.respond("Alles klar, ab jetzt bekommst du jeden Morgen um 09:00 eine Nachricht über die aktuelle Lage!",buttons=getDefaultKeyboard())
+            self.userStore.setRegionNameOfUser(databaseUser[0],databaseUser[1],name)
+        else:
+            me= "Ich habe diesen Ort nicht gefunden!"
+            bs = Button.clear()
+            closeMatches = list(difflib.get_close_matches(name,possibleNames,n=5))
+            if(len(closeMatches)>0):
+                bs = getKeyboardFromList(map(lambda n: n.capitalize(),closeMatches))
+                me += "\n\nMeinst du vielleicht:\n"
+                for m in closeMatches:
+                    me += " - %s\n"%(m.capitalize())
+            await event.respond(me,buttons=bs)
+
+
         
 
     async def sendUpdateToAll(self):
@@ -93,18 +111,22 @@ class CoronaBot(object):
         users = filter(lambda u: u[2]  != None and u[3] != None,self.userStore.getAllActiveUsers())
         for user in users:
             peer = InputPeerUser(user[0],user[1])
-            message = getMessage(self.dataStoreProvider.getSourceFromRegion(Region(user[2],user[3])))
             try:
-                await self.bot.send_message(peer,message,parse_mode="html")
-            except UserIsBlockedError:
-                self.userStore.removeUserFromDB(user[0],user[1])
+                message = getMessage(self.dataStoreProvider.getSourceFromRegion(Region(user[2],user[3])))
+                try:
+                    await self.bot.send_message(peer,message,parse_mode="html")
+                except UserIsBlockedError:
+                    self.userStore.removeUserFromDB(user[0],user[1])
+            except:
+                pass
+            
         print("all messages send")
 
     async def runUntilDisconnect(self):
         return await self.bot.run_until_disconnected()
 
 def getRegionTypeKeyboard():
-    return [list(map(lambda t: Button.text(t),Region.types))]
+    return getKeyboardFromList(Region.types)
 
 
 def getDefaultKeyboard():
@@ -112,6 +134,9 @@ def getDefaultKeyboard():
 
 def getDisabledKeyboard():
     return [[Button.text("/start")]]#
+
+def getKeyboardFromList(l):
+    return [list(map(lambda t: Button.text(t),l))]
 
 
 def flatten(lst):

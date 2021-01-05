@@ -5,9 +5,9 @@ from urllib.parse import quote
 from DataSources import DataSource,Region
 
 
-class CitySource(DataSource):
+class DistrictSource(DataSource):
     def __init__(self,city:Region):
-        if(city.type !="Stadtkreis"):
+        if(city.type !="Landkreis"):
             raise TypeError("Invalid city type")
         super().__init__(city)
         self.dataSource = r"https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_Landkreisdaten/FeatureServer/0/query"
@@ -51,9 +51,13 @@ class RegionSourceProvider(object):
     def getSourceFromRegion(self,region:Region):
         if region not in self.sources:
 
-            if(region.type =="Stadtkreis"):
-                self.sources[region] = CitySource(region)
+            if(region.type =="Landkreis"):
+                self.sources[region] = DistrictSource(region)
+
         return self.sources[region]
 
     def getPossibleNameForRegionType(self,region):
-        if(region.type == "Stadtkreis"):        
+        if(region.type == "Landkreis"):
+            return lk
+        if(region.type == "Bundesland"):
+            return bl
