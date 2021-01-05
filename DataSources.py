@@ -77,9 +77,3 @@ def getMessage(data:DataSource):
             # print(err)
             pass
     return message
-
-# DEBUG
-if __name__ == "__main__":
-    region = Region("Stadtkreis","Wilhelmshaven")
-    provider = RegionSourceProvider()
-    print(getMessage(provider.getSourceFromRegion(region)))
