@@ -1,11 +1,14 @@
 from asyncio.events import get_event_loop
+from telethon.client import buttons
 from telethon.events.newmessage import NewMessage
-from telethon.sync import TelegramClient 
-from telethon.tl.types import InputPeerUser, KeyboardButton 
+from telethon.sync import TelegramClient
+from telethon.tl.custom import Button 
+from telethon.tl.types import InputPeerUser, KeyboardButton, ReplyKeyboardHide 
 from telethon import TelegramClient, events
 from telethon.errors import UserIsBlockedError
 from UserStore import UserStore
-from DataStore import *
+from DataSources import *
+from DataSourcesImpl import CitySource
 
 import asyncio
 
@@ -13,7 +16,9 @@ class CoronaBot(object):
     def __init__(self,apiId,apiHash) -> None:
         self.bot = TelegramClient('CoronaWHVBot', apiId, apiHash)
         self.bot.add_event_handler(self.onStartMessage,events.NewMessage(pattern="/start"))
-        self.bot.add_event_handler(self.onRegularMessage,events.NewMessage(pattern="^(?!/start.*$).*"))
+        self.bot.add_event_handler(self.onStopMessage,events.NewMessage(pattern="/stop"))
+        self.bot.add_event_handler(self.onRegionResetMessage,events.NewMessage(pattern="/resetRegion"))
+        self.bot.add_event_handler(self.onRegularMessage,events.NewMessage(pattern="^(?!(/start|/stop|/resetRegion).*$).*"))
         self.userStore = UserStore()
         self.dataStoreProvider = RegionSourceProvider()
 
@@ -33,10 +38,28 @@ class CoronaBot(object):
         try:    
             self.userStore.addUserToDB(sender.user_id,sender.access_hash)
             print("added user")
-            await event.respond("Du wurdest erfolgreich hinzugefügt. Du kriegst von mir ab jetzt jeden Morgen um 09:00 eine Übersicht der aktuellen Lage",buttons=getResponseKeyboard())
-        except:
-            await event.respond("Irgendwas hat nicht funktioniert! Probiere nochmal \"/start\" oder kontaktiere den Admin")
-            print("saving went wrong")
+            await event.respond("Für welches Gebiet willst du jeden Morgen um 09:00 Nachrichten erhalten?\n\nBitte gebe zunächst die Art der Region an!",buttons=getRegionTypeKeyboard())
+        except Exception as e:
+            await event.respond("Irgendwas hat nicht funktioniert! Probiere nochmal \"/start\" oder kontaktiere den Admin",buttons=getDisabledKeyboard())
+            print("adding went wrong",e)
+
+    async def onStopMessage(self,event):
+        sender = event.input_sender
+        try:
+            self.userStore.removeUserFromDB(sender.user_id,sender.access_hash)
+            print("removed user")
+            await event.respond("Du wurdest erfolgreich entfernt, du wurst nun keine Nachrichten mehr erhalten!",buttons=getDisabledKeyboard())
+        except Exception as e:
+            await event.respond("Das entfernen hat nicht funktioniert. Du wirst weiterhin Nachrichten erhalten!",buttons=getDefaultKeyboard())
+            print("deleting went wrong!",e)
+    async def onRegionResetMessage(self,event):
+        sender = event.input_sender
+        try:
+            self.userStore.removeRegionOfUser(sender.user_id,sender.access_hash)
+            print("removed user")
+            await event.respond("Deine Region wurde erfolgreich entfernt. Für welche Region willst du ab jetzt Nachrichten erhalten?\n\nBitte gebe zunächst die Art der Region an!",buttons=getRegionTypeKeyboard())
+        except Exception as e:
+            await event.respond("Das entfernen hat nicht funktioniert. Du wirst weiterhin Nachrichten erhalten!",buttons=getDefaultKeyboard())
 
     async def onRegularMessage(self,event):
         sender = event.input_sender
@@ -50,10 +73,23 @@ class CoronaBot(object):
 
         
     async def tryAddRegionType(self,event,databaseUser):
-        pass
+        regionType = event.message.message
+        isRegionType = any(map(lambda b: b.button.text == event.message.message,flatten(getRegionTypeKeyboard())))
+        if(not isRegionType):
+            await event.respond("Das war kein erlaubte Regionsart!",buttons=getRegionTypeKeyboard())
+        else:
+            try:
+                self.userStore.setRegionTypeOfUser(databaseUser[0],databaseUser[1],regionType)
+                await event.respond("Schreibe jetzt bitte den Namen der Region!",buttons=Button.clear())
+            except Exception as e:
+                print("region type saving failed",e)
+                await event.respond("Beim Speichern ist etwas schief gelaufen, versuche es nochmal oder kontaktiere den Admin")
+
+
 
     async def tryAddRegionName(self,event,databaseUser):
-        pass
+        regionType = databaseUser[2]
+        
 
     async def sendUpdateToAll(self):
         print("Sending Number Update to all users") 
@@ -64,11 +100,26 @@ class CoronaBot(object):
             try:
                 await self.bot.send_message(peer,message,parse_mode="html")
             except UserIsBlockedError:
-                self.userStore.removeUserFromDB(user[0])
+                self.userStore.removeUserFromDB(user[0],user[1])
         print("all messages send")
 
     async def runUntilDisconnect(self):
         return await self.bot.run_until_disconnected()
 
-def getResponseKeyboard():
-    return [[KeyboardButton("Bundesland"),KeyboardButton("Landkreis"),KeyboardButton("Kreisfreie Stadt")]]
+def getRegionTypeKeyboard():
+    return [[Button.text("Bundesland"),Button.text("Landkreis"),Button.text("Stadtkreis")]]
+
+
+def getDefaultKeyboard():
+    return [[Button.text("/resetRegion"),Button.text("/stop")]]
+
+def getDisabledKeyboard():
+    return [[Button.text("/start")]]#
+
+
+def flatten(lst):
+    for item in lst:
+        if isinstance(item, list):
+            yield from flatten(item)
+        else:
+            yield item

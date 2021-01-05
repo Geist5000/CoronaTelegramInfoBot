@@ -8,9 +8,9 @@
             "name": "Python: Aktuelle Datei",
             "type": "python",
             "request": "launch",
-            "program": "${file}",
+            "program": "./CoronaBotMain.py",
             "console": "integratedTerminal",
-            "cwd": "${fileDirname}"
+            "cwd": "${workspaceFolder}"
         }
     ]
 }

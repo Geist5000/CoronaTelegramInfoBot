@@ -19,8 +19,8 @@ class UserStore(object):
         self._c.execute("REPLACE INTO `%s` (%s,%s) VALUES (?,?)"%(self._userTableName,self._userColumn,self._hashColumn), (id,hash))
         self.save()
         
-    def removeUserFromDB(self,id):
-        self._c.execute("DELETE FROM `%s` WHERE %s=?;"%(self._userTableName,self._userColumn), (id))
+    def removeUserFromDB(self,id,hash):
+        self._c.execute("DELETE FROM `%s` WHERE %s;"%(self._userTableName,self.getUserCondition()), (id,hash))
         self.save()
 
     def setRegionTypeOfUser(self,id,hash,t):
@@ -42,7 +42,7 @@ class UserStore(object):
 
     def getUserCondition(self):
         return "`%s`=? AND `%s`=?"%(self._userColumn,self._hashColumn)
-    def removeRegionNameOfUser(self,id,hash):
+    def removeRegionOfUser(self,id,hash):
         self.setRegionOfUser(id,hash,None,None)
         
     def getAllActiveUsers(self):
