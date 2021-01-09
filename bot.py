@@ -36,7 +36,7 @@ class CoronaBot(object):
             print(self.userStore.getUser(sender.user_id,sender.access_hash))
             self.userStore.addUserToDB(sender.user_id,sender.access_hash)
             print("added user")
-            await event.respond("Für welches Gebiet willst du jeden Morgen um 09:00 Nachrichten erhalten?\n\nBitte gebe zunächst die Art der Region an!",buttons=getRegionTypeKeyboard())
+            await event.respond("Für welches Gebiet willst du jeden Morgen um 09:00 Nachrichten erhalten?\n\nBitte gib zunächst die Art der Region an!",buttons=getRegionTypeKeyboard())
         except Exception as e:
             await event.respond("Irgendwas hat nicht funktioniert! Probiere nochmal \"/start\" oder kontaktiere den Admin",buttons=getDisabledKeyboard())
             print("adding went wrong",e)
@@ -55,7 +55,7 @@ class CoronaBot(object):
         try:
             self.userStore.removeRegionOfUser(sender.user_id,sender.access_hash)
             print("removed user")
-            await event.respond("Deine Region wurde erfolgreich entfernt. Für welche Region willst du ab jetzt Nachrichten erhalten?\n\nBitte gebe zunächst die Art der Region an!",buttons=getRegionTypeKeyboard())
+            await event.respond("Deine Region wurde erfolgreich entfernt. Für welche Region willst du ab jetzt Nachrichten erhalten?\n\nBitte gib zunächst die Art der Region an!",buttons=getRegionTypeKeyboard())
         except Exception as e:
             await event.respond("Das entfernen hat nicht funktioniert. Du wirst weiterhin Nachrichten erhalten!",buttons=getDefaultKeyboard())
 
