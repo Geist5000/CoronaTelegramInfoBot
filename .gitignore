@@ -3,3 +3,4 @@
 *.session-journal
 *.pyc
 .env
+env
