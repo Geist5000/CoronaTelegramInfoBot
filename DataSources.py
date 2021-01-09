@@ -41,6 +41,13 @@ class DataSource(object):
     def getLicenceText(self):
         raise NotImplemented()
 
+    def getVaccCum(self):
+        raise NotImplemented()
+    def getVaccDiff(self):
+        raise NotImplemented()
+    def getVacc1000(self):
+        raise NotImplemented()
+
 
 
 class UpdateTextLine(object):
@@ -59,8 +66,13 @@ updateText = [
     UpdateTextLine("7-Tage-Inzidenz:   <b><u>{:.2f}</u></b>\n", lambda source : source.getReputitionOf7Days()),
     UpdateTextLine("Aktuelle Fälle:   <b><u>{:d}</u></b>\n", lambda source : source.getCurrentCases()),
     UpdateTextLine("Alle Fälle:   <b><u>{:d}</u></b>\n", lambda source : source.getTotalCases()),
-    UpdateTextLine("Alle Tode:   <b><u>{:d}</u></b>\n", lambda source : source.getTotalDeaths()),
-    UpdateTextLine("Pass auf dich auf\n\nLetze Aktualisierung: {:s}\n", lambda source : source.getLastUpdate()),
+    UpdateTextLine("Alle Totgegangenen:   <b><u>{:d}</u></b>\n", lambda source : source.getTotalDeaths()),
+
+    UpdateTextLine("Impfungen kumulativ:   <b><u>{:d}</u></b>\n", lambda source : source.getVaccCum()),
+    UpdateTextLine("Differenz zum Vortag:   <b><u>{:d}</u></b>\n", lambda source : source.getVaccDiff()),
+    UpdateTextLine("Impfungen pro 1000 Einwohner:   <b><u>{:.2f}</u></b>\n", lambda source : source.getVacc1000()),
+
+    UpdateTextLine("Pass auf dich auf\n\nLetzte Aktualisierung: {:s}\n", lambda source : source.getLastUpdate()),
     UpdateTextLine("\n\nQuelle:\n{:s}\n", lambda source : source.getSourceText()),
     UpdateTextLine("Lizenz: {:s}", lambda source : source.getLicenceText())
 ]
