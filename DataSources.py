@@ -59,7 +59,7 @@ updateText = [
     UpdateTextLine("7-Tage-Inzidenz:   <b><u>{:.2f}</u></b>\n", lambda source : source.getReputitionOf7Days()),
     UpdateTextLine("Aktuelle Fälle:   <b><u>{:d}</u></b>\n", lambda source : source.getCurrentCases()),
     UpdateTextLine("Alle Fälle:   <b><u>{:d}</u></b>\n", lambda source : source.getTotalCases()),
-    UpdateTextLine("Alle Tode:   <b><u>{:d}</u></b>\n", lambda source : source.getTotalDeaths()),
+    UpdateTextLine("Anzahl Verstorbene:   <b><u>{:d}</u></b>\n", lambda source : source.getTotalDeaths()),
     UpdateTextLine("Pass auf dich auf\n\nLetze Aktualisierung: {:s}\n", lambda source : source.getLastUpdate()),
     UpdateTextLine("\n\nQuelle:\n{:s}\n", lambda source : source.getSourceText()),
     UpdateTextLine("Lizenz: {:s}", lambda source : source.getLicenceText())
