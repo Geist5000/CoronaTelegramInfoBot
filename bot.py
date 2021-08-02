@@ -1,4 +1,3 @@
-from reportlab.lib.utils import datareader
 from telethon.sync import TelegramClient
 from telethon.tl.custom import Button
 from telethon.tl.types import InputPeerUser
@@ -53,7 +52,7 @@ class CoronaBot(object):
 
     async def onFastInfoMessage(self, event):
         try:
-            self.fastInfoRequests[event.input_sender.user_id] = None
+            self.fastInfoRequests[event.input_sender.user_id] = ""
             await event.respond("Bitte gebe zunächst die Art der Region an!", buttons=getRegionTypeKeyboard())
         except Exception as e:
             await event.respond(
@@ -93,22 +92,22 @@ class CoronaBot(object):
         elif (databaseUser[3] == None):
             await self.tryAddRegionName(event, databaseUser)
         elif (sender.user_id in self.fastInfoRequests.keys()):
-            type = self.fastInfoRequests[sender.user_id]
+            regioType = self.fastInfoRequests[sender.user_id]
             m = event.message.message
-            if (type is None):
-
+            if (regioType is ""):
                 if (self.getRegionType(m) is not None):
                     self.fastInfoRequests[sender.user_id] = m
-                    await event.respond("Bitte gebe nun den Namen ein!", buttons=getDisabledKeyboard())
+                    await event.respond("Bitte gebe nun den Namen ein!", buttons=Button.clear())
                 else:
                     await event.respond("Das war kein erlaubte Regionsart!", buttons=getRegionTypeKeyboard())
             else:
-                hasMatch, possibleNames = self.getRegionNameForType(databaseUser[2], m)
+                hasMatch, possibleNames = self.getRegionNameForType(regioType, m)
                 if (hasMatch):
                     try:
+                        await event.respond("Deine Daten werden jetzt abgerufen", buttons=getDefaultKeyboard())
                         await self.sendUpdateToUser(sender, self.fastInfoRequests[sender.user_id], possibleNames)
-                    except:
-                        pass
+                    except Exception as e:
+                        print(e)
                 else:
                     closeMatches = getCloseRegionNamesFromList(m, possibleNames)
                     me, bs = getRegionNameSuggestionMessage(closeMatches)
@@ -122,7 +121,7 @@ class CoronaBot(object):
     async def tryAddRegionType(self, event, databaseUser):
         regionType = event.message.message
         isRegionType = self.getRegionType(regionType)
-        if (None is not isRegionType):
+        if (None is isRegionType):
             await event.respond("Das war kein erlaubte Regionsart!", buttons=getRegionTypeKeyboard())
         else:
             try:
@@ -143,7 +142,9 @@ class CoronaBot(object):
 
     async def tryAddRegionName(self, event, databaseUser):
         name = event.message.message
-        hasMatch, possibleNames = self.getRegionNameForType(databaseUser[2])
+        result = self.getRegionNameForType(databaseUser[2],name)
+        hasMatch = result[0]
+        possibleNames = result[1]
         if (hasMatch):
             await event.respond(
                 "Alles klar, ab jetzt bekommst du jeden Morgen um 09:00 eine Nachricht über die aktuelle Lage!",
